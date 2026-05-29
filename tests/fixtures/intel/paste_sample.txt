@@ -1,0 +1,7 @@
+Campaign notes — redacted sample for unit tests only.
+
+C2: 192.0.2.44
+Domain: evil-redacted.example
+Email combo: victim@example.com:SuperSecretPassword123
+Hash: d41d8cd98f00b204e9800998ecf8427e
+CVE-2024-12345 discussed in thread.

@@ -1,0 +1,439 @@
+/**
+ * ThreatScope design tokens and typography — loaded on all pages.
+ */
+
+:root {
+  color-scheme: dark;
+  --bg: #080c14;
+  --bg-card: #111827;
+  --bg-elevated: #1a2332;
+  --bg-input: #0d1117;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(77, 163, 255, 0.45);
+  --accent: #5eb0ff;
+  --accent-dim: rgba(94, 176, 255, 0.14);
+  --text: #e8eef5;
+  --text-muted: #a8b4c4;
+  --text-dim: #7a8799;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --space-section: 1.25rem;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  min-height: 100%;
+}
+
+/* Typography scale */
+.ts-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.ts-caption {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.ts-body {
+  font-size: 0.9375rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.ts-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.ts-mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.ts-mono-sm {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.ts-value {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: #fff;
+  line-height: 1.45;
+  word-break: break-all;
+}
+
+.ts-section-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  line-height: 1.4;
+}
+
+/* Layout */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.ts-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.ts-card-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.ts-stat-cell {
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+}
+
+.ts-stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.35rem;
+}
+
+.ts-stat-value {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+/* Tabs & pills */
+.main-tab {
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.main-tab:hover {
+  color: var(--text-muted);
+}
+
+.main-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.intel-results mark {
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 0 0.15em;
+  border-radius: 2px;
+}
+
+.type-pill {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.type-pill:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border);
+}
+
+.type-pill.active {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: rgba(94, 176, 255, 0.35);
+}
+
+/* Forms */
+.input-field {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: #fff;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  pointer-events: auto;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input-field::placeholder {
+  color: var(--text-dim);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(94, 176, 255, 0.2);
+}
+
+.btn-scan {
+  background: var(--accent);
+  color: #061018;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-scan:hover {
+  background: #7fc4ff;
+}
+
+.btn-scan:active {
+  transform: scale(0.98);
+}
+
+.btn-outline {
+  border: 1px solid rgba(94, 176, 255, 0.5);
+  color: var(--accent);
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-outline:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+/* Verdict badges */
+.ts-badge {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  line-height: 1.3;
+}
+
+.ts-badge-malicious {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.ts-badge-suspicious {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.ts-badge-clean {
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.28);
+}
+
+.ts-badge-neutral {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Score ring */
+.ts-score-ring {
+  width: 3.75rem;
+  height: 3.75rem;
+}
+
+.ts-score-num {
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Alerts & callouts */
+.ts-callout {
+  padding: 1rem 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+
+.ts-callout-warn {
+  background: rgba(100, 116, 139, 0.08);
+}
+
+.ts-callout-info {
+  background: rgba(94, 176, 255, 0.06);
+}
+
+/* Findings list */
+.ts-finding-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.ts-finding-detail {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+  line-height: 1.55;
+}
+
+/* Table (bulk) */
+.ts-table {
+  font-size: 0.875rem;
+}
+
+.ts-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0.75rem 1rem;
+}
+
+.ts-table td {
+  padding: 0.85rem 1rem;
+  color: var(--text);
+  vertical-align: top;
+}
+
+/* Details / expandable */
+details.ts-details > summary {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  list-style: none;
+}
+
+details.ts-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* HTMX */
+.htmx-indicator {
+  display: none !important;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  display: flex !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+}
+
+.panel[hidden] {
+  display: none !important;
+}
+
+/* Result panels (HTMX) */
+#results .card + .card,
+#results .card {
+  margin-bottom: 0;
+}
+
+#results .ts-score-num,
+#results .text-sm.font-bold.tabular-nums {
+  font-size: 1.0625rem;
+}
+
+.drop-zone {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.drop-zone:hover {
+  border-color: var(--border-hover);
+}
+
+.drop-zone.dragover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+#file-input {
+  display: none;
+}
+
+@keyframes scan {
+  0%,
+  100% {
+    top: 15%;
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 85%;
+    opacity: 0;
+  }
+}
+
+.scan-line {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.6;
+  border-radius: 1px;
+  animation: scan 2.5s ease-in-out infinite;
+}

@@ -1,0 +1,22 @@
+<footer class="py-10 text-center ts-caption max-w-3xl mx-auto px-5">
+  <p class="mb-3">
+    <a href="/about" class="hover:underline" style="color: var(--text-muted)">About</a>
+    ·
+    <a href="/privacy" class="hover:underline" style="color: var(--text-muted)">Privacy</a>
+    {% if public_mode %}
+    · <a href="/admin" class="hover:underline" style="color: var(--text-muted)">Admin</a>
+    {% endif %}
+  </p>
+  <p>
+    Threat intel courtesy of
+    <a href="https://abuse.ch" style="color: var(--text-muted)" class="hover:underline" target="_blank" rel="noopener">abuse.ch</a>,
+    <a href="https://www.blocklist.de/" style="color: var(--text-muted)" class="hover:underline" target="_blank" rel="noopener">Blocklist.de</a>,
+    <a href="https://cinsscore.com/" style="color: var(--text-muted)" class="hover:underline" target="_blank" rel="noopener">CINSscore</a>,
+    <a href="https://www.spamhaus.org/drop/" style="color: var(--text-muted)" class="hover:underline" target="_blank" rel="noopener">Spamhaus DROP</a>,
+    <a href="https://openphish.com/" style="color: var(--text-muted)" class="hover:underline" target="_blank" rel="noopener">OpenPhish</a>,
+    <a href="https://github.com/firehol/blocklist-ipsets" style="color: var(--text-muted)" class="hover:underline" target="_blank" rel="noopener">FireHOL</a>,
+    <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" style="color: var(--text-muted)" class="hover:underline" target="_blank" rel="noopener">CISA KEV</a>,
+    <a href="https://github.com/mitchellkrogza/Phishing.Database" style="color: var(--text-muted)" class="hover:underline" target="_blank" rel="noopener">Phishing.Database</a>
+  </p>
+  <p class="mt-2" style="color: var(--text-dim)">Summaries via local Ollama · Not commercial antivirus</p>
+</footer>

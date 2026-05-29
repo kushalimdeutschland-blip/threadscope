@@ -1,0 +1,19 @@
+{% if history %}
+<section class="mt-10 max-w-4xl mx-auto w-full">
+  <h2 class="ts-eyebrow mb-4 text-center">Recent activity</h2>
+  <ul class="space-y-2" style="color: var(--text-muted)">
+    {% for row in history %}
+    <li class="flex flex-wrap items-center gap-3 py-3 px-4 rounded-lg" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border)">
+      <span class="ts-mono text-slate-300 truncate max-w-[16rem]" title="{{ row.query_value }}">{{ row.query_value }}</span>
+      <span class="ts-eyebrow">{{ row.query_type }}</span>
+      {% if row.verdict %}
+      <span class="ts-body-sm font-medium {% if row.verdict == 'MALICIOUS' %}text-red-400{% elif row.verdict == 'SUSPICIOUS' %}text-amber-400{% else %}text-slate-500{% endif %}">{{ row.verdict }}</span>
+      {% endif %}
+      {% if row.risk_score is not none %}
+      <span class="tabular-nums ts-caption">{{ row.risk_score }}</span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

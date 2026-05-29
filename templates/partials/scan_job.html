@@ -1,0 +1,28 @@
+<div
+  id="scan-job-{{ job_id }}"
+  class="card px-5 py-4 mt-4"
+  {% if polling %}
+  hx-get="/api/scan-job/{{ job_id }}"
+  hx-trigger="every 3s"
+  hx-swap="outerHTML"
+  {% endif %}
+>
+  {% if polling %}
+  <div class="flex items-center gap-3">
+    <div class="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style="border-color: var(--accent); border-top-color: transparent"></div>
+    <div>
+      <p class="ts-body font-medium text-slate-300">Lab scan in progress</p>
+      <p class="ts-caption mt-1">
+        Target: <span class="ts-mono">{{ job.target }}</span> · Status: {{ job.status }}
+        {% if job.status == 'queued' %} — start <code class="ts-mono-sm">LAB_SCAN_ENABLED=1 python scripts/scan_worker.py</code>{% endif %}
+      </p>
+      <p class="ts-caption mt-1">
+        Scan only targets you own or have authorization to test.
+      </p>
+    </div>
+  </div>
+  {% else %}
+  <p class="ts-body font-medium text-red-400">Lab scan failed</p>
+  <p class="ts-caption mt-1">{{ error }}</p>
+  {% endif %}
+</div>

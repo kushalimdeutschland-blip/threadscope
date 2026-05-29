@@ -1,0 +1,23 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.6
+httpx>=0.27.2
+pydantic>=2.11.0
+python-dotenv>=1.0.1
+aiosqlite>=0.20.0
+jinja2>=3.1.4
+slowapi>=0.1.9
+bcrypt>=4.2.0
+python-multipart>=0.0.9
+pefile>=2024.8.26
+yara-python>=4.5.0
+phonenumbers>=8.13.0
+geoip2>=4.8.0
+feedparser>=6.0.11
+PyYAML>=6.0.2
+beautifulsoup4>=4.12.0
+# System package required: libyara (e.g. pacman -S yara, apt install yara)
+# Optional — richer APK static analysis (permissions, package, activities):
+#   pip install androguard
+# Optional — Office macros / PDF helpers:
+#   pip install oletools pdfid
+# See docs/user/feeds-and-analysis.md and docs/user/quick-start.md

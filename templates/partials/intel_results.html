@@ -1,0 +1,81 @@
+{% if results %}
+<section class="intel-results space-y-4">
+  <p class="ts-caption text-center">{{ results|length }} result(s) for &ldquo;{{ query }}&rdquo;{% if tag %} · tag {{ tag }}{% endif %}</p>
+  {% if expansion_meta and expansion_meta.expanded and expansion_meta.expanded != expansion_meta.original %}
+  <p class="ts-caption text-center" style="color: var(--text-muted)">
+    Also searched: {{ expansion_meta.expanded }}
+    {% if expansion_meta.suggested_tags %}
+    · suggested tags: {{ expansion_meta.suggested_tags | join(', ') }}
+    {% endif %}
+  </p>
+  {% endif %}
+  <ul class="space-y-3">
+    {% for row in results %}
+    <li class="rounded-lg px-4 py-4" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border)">
+      <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+        <h3 class="ts-body font-semibold text-white leading-snug flex-1 min-w-0">
+          {% if row.url %}
+          <a href="{{ row.url }}" target="_blank" rel="noopener noreferrer" class="hover:underline" style="color: var(--accent)">{{ row.title }}</a>
+          {% else %}
+          {{ row.title }}
+          {% endif %}
+        </h3>
+        <span class="ts-eyebrow shrink-0 px-2 py-0.5 rounded" style="background: var(--accent-dim); color: var(--accent)">{{ row.source }}</span>
+      </div>
+      {% if row.meta and row.meta.ai_summary %}
+      <p class="ts-body-sm leading-relaxed mb-2" style="color: var(--text-muted)">{{ row.meta.ai_summary }}</p>
+      {% endif %}
+      {% if row.published_at %}
+      <p class="ts-caption mb-2">{{ row.published_at[:10] }}</p>
+      {% endif %}
+      <p class="ts-body-sm leading-relaxed mb-3" style="color: var(--text-muted)">{{ row.snippet }}</p>
+      {% if row.body_display and row.body_display|length > 280 %}
+      <details class="mb-3">
+        <summary class="ts-caption cursor-pointer" style="color: var(--accent)">Full text (sanitized)</summary>
+        <pre class="ts-body-sm mt-2 whitespace-pre-wrap rounded p-3 overflow-x-auto" style="background: rgba(0,0,0,0.25); color: var(--text-muted); max-height: 16rem">{{ row.body_display }}</pre>
+      </details>
+      {% endif %}
+      {% if row.tags %}
+      <div class="flex flex-wrap gap-1.5 mb-3">
+        {% for t in row.tags[:12] %}
+        <span class="ts-eyebrow px-2 py-0.5 rounded" style="background: var(--accent-dim); color: var(--accent)">{{ t }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if row.lookup_iocs %}
+      <div class="flex flex-wrap gap-2 mb-3">
+        {% for ioc in row.lookup_iocs %}
+        <form
+          class="inline"
+          hx-post="/api/lookup"
+          hx-target="#results"
+          hx-swap="innerHTML"
+          hx-indicator="#loading"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+          <input type="hidden" name="indicator_type" value="{{ ioc.type if ioc.type != 'ipv4' else 'auto' }}" />
+          <input type="hidden" name="q" value="{{ ioc.value }}" />
+          <button type="submit" class="ts-eyebrow px-2 py-1 rounded hover:opacity-90" style="background: rgba(255,255,255,0.08); color: var(--text-muted)" title="Look up in Search tab">
+            Lookup {{ ioc.type }}: {{ ioc.value }}
+          </button>
+        </form>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <p class="ts-caption">
+        {% if row.ioc_count > 0 %}
+        <span class="tabular-nums">{{ row.ioc_count }} IOC(s) ingested</span>
+        {% else %}
+        No IOCs extracted for this document.
+        {% endif %}
+        {% if 'yara_candidate' in row.tags %}
+        · <span style="color: var(--accent)">YARA candidate — copy manually to <code class="ts-mono-sm">data/yara_rules/</code></span>
+        {% endif %}
+      </p>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% elif query %}
+<p class="ts-caption text-center py-8" style="color: var(--text-muted)">No intel matches for &ldquo;{{ query }}&rdquo;.</p>
+{% endif %}

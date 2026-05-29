@@ -1,0 +1,33 @@
+# ThreatScope optional sandbox services (localhost only).
+# Daily dev: SANDBOX_BACKEND=mock — no compose needed.
+#
+# APK dynamic:  docker compose --profile mobsf up
+# EXE dynamic:  ./scripts/sandbox-setup-cape.sh && docker compose --profile cape up
+
+services:
+  mobsf:
+    profiles: ["mobsf"]
+    image: opensecurity/mobile-security-framework-mobsf:latest
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - ./data/sandbox/mobsf:/home/mobsf/.MobSF
+    environment:
+      - MOBSF_API_KEY=${MOBSF_API_KEY:-}
+    restart: unless-stopped
+    # Dynamic scans need RAM for the Android emulator
+    mem_limit: 4g
+
+  # CAPE requires KVM on the host. See scripts/sandbox-setup-cape.sh
+  cape:
+    profiles: ["cape"]
+    image: capev2/cape:latest
+    ports:
+      - "127.0.0.1:8002:8000"
+    volumes:
+      - ./data/sandbox/cape:/opt/CAPEv2/storage
+    devices:
+      - /dev/kvm:/dev/kvm
+    privileged: true
+    restart: unless-stopped
+    mem_limit: 8g

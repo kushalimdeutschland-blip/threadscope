@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#080c14" />
+  <title>ThreatScope</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/static/tailwind-config.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <link rel="stylesheet" href="/static/theme.css?v=1" />
+</head>
+<body class="h-full antialiased">
+
+  <header style="border-bottom: 1px solid var(--border); background: rgba(8,12,20,0.9);" class="sticky top-0 z-10 backdrop-blur">
+    <div class="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5 font-semibold text-base text-white">
+        <svg class="w-5 h-5" style="color: var(--accent)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        ThreatScope
+      </a>
+      <span class="ts-eyebrow">Local · Private</span>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-5 py-10 sm:py-14">
+
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5" style="background: var(--accent-dim)">
+        <svg class="w-8 h-8" style="color: var(--accent)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">ThreatScope</h1>
+      <p class="text-base max-w-lg mx-auto leading-relaxed" style="color: var(--text-muted)">
+        Analyze IPs, domains, hashes, and files against local threat intel.
+        Nothing leaves your server.
+      </p>
+    </div>
+
+    <div class="card overflow-hidden shadow-2xl shadow-black/50">
+
+      <div class="flex" style="border-bottom: 1px solid var(--border)" role="tablist">
+        <button type="button" data-panel="file" class="main-tab flex-1 py-4">
+          File
+        </button>
+        <button type="button" data-panel="search" class="main-tab active flex-1 py-4">
+          Search
+        </button>
+        {% if intel_search_enabled %}
+        <button type="button" data-panel="intel" class="main-tab flex-1 py-4">
+          Intel
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- FILE -->
+      <div id="panel-file" class="panel px-6 sm:px-10 py-10 sm:py-12" hidden>
+        <form
+          id="file-form"
+          hx-post="/api/analyze-file"
+          hx-target="#results"
+          hx-swap="innerHTML"
+          hx-indicator="#loading"
+          hx-encoding="multipart/form-data"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+          <input id="file-input" name="file" type="file" accept=".exe,.apk,.zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.rtf" />
+
+          {% if allow_dynamic_sandbox %}
+          <label class="flex items-start gap-3 mt-6 mb-2 cursor-pointer select-none text-left max-w-md mx-auto">
+            <input
+              type="checkbox"
+              name="run_dynamic"
+              value="1"
+              class="mt-1 rounded border-slate-600"
+            />
+            <span class="ts-caption leading-relaxed">
+              Run <strong>APK</strong> dynamic analysis via MobSF (opt-in). Requires
+              <code class="ts-mono-sm">sandbox_worker.py</code> and Docker MobSF — never in the web process.
+              <span id="dynamic-exe-hint" class="block mt-1 ts-eyebrow" hidden>
+                .exe dynamic detonation needs a KVM CAPE lab; homelab installs use static + YARA for executables.
+              </span>
+            </span>
+          </label>
+          {% endif %}
+
+          <div id="drop-zone" class="drop-zone flex flex-col items-center py-8">
+            <div class="relative mb-5 w-16 h-16">
+              <svg class="w-16 h-16" style="color: var(--text-dim)" viewBox="0 0 64 64" fill="none">
+                <rect x="12" y="8" width="40" height="48" rx="4" stroke="currentColor" stroke-width="2"/>
+                <path d="M20 24h24M20 32h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="32" cy="44" r="6" stroke="var(--accent)" stroke-width="1.5"/>
+              </svg>
+              <div class="scan-line"></div>
+            </div>
+            <p id="file-label" class="ts-body mb-4" style="color: var(--text-muted)">Drop file here (.exe, .apk, .zip, .pdf, Office)</p>
+            <button type="button" id="choose-file-btn" class="btn-outline px-6 py-2.5 rounded-full">
+              Choose file
+            </button>
+          </div>
+        </form>
+        <p class="text-center ts-caption mt-4">
+          Static + YARA in-app (never executed). ZIP listing only — no extract. MobSF dynamic for APK only.
+        </p>
+      </div>
+
+      <!-- SEARCH -->
+      <div id="panel-search" class="panel active px-6 sm:px-10 py-8">
+        <details class="mb-6 text-left max-w-xl mx-auto rounded-lg px-4 py-3" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border)">
+          <summary class="ts-body-sm font-medium cursor-pointer" style="color: var(--text-muted)">Bulk IOC lookup (up to 50)</summary>
+          <form
+            class="mt-3"
+            hx-post="/api/bulk-lookup"
+            hx-target="#results"
+            hx-swap="innerHTML"
+            hx-indicator="#loading"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <textarea
+              name="iocs"
+              rows="5"
+              required
+              placeholder="One IP, domain, phone, email, URL, or hash per line&#10;1.2.3.4&#10;evil@example.com&#10;+15551234567&#10;abc123..."
+              class="input-field w-full rounded-lg px-4 py-3 ts-mono mb-2"
+            ></textarea>
+            <button type="submit" class="btn-outline px-5 py-2.5 rounded-lg">Bulk scan</button>
+          </form>
+          <form
+            class="mt-3 pt-3"
+            style="border-top: 1px solid var(--border)"
+            hx-post="/api/bulk-lookup-file"
+            hx-target="#results"
+            hx-swap="innerHTML"
+            hx-indicator="#loading"
+            hx-encoding="multipart/form-data"
+            enctype="multipart/form-data"
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <input
+              type="file"
+              name="file"
+              accept=".txt,.csv,.list"
+              required
+              class="input-field w-full rounded-lg px-4 py-2.5 mb-2"
+            />
+            <button type="submit" class="btn-outline px-5 py-2.5 rounded-lg">Import file</button>
+            <p class="ts-caption mt-2">
+              Text or CSV only, max 50 IOCs (256 KiB). CSV uses the first column, or a column named value, ioc, or indicator.
+            </p>
+          </form>
+          <p class="ts-caption mt-2">
+            <a href="/api/export/blocklist.csv?min_score=70" class="hover:underline" style="color: var(--accent)" download>Export malicious IOCs (CSV)</a>
+            for lab firewall / hosts
+          </p>
+        </details>
+        <form
+          id="lookup-form"
+          hx-post="/api/lookup"
+          hx-target="#results"
+          hx-swap="innerHTML"
+          hx-indicator="#loading"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+          <input type="hidden" name="indicator_type" id="indicator_type" value="auto" />
+
+          <div class="flex gap-2 mb-4 flex-wrap justify-center">
+            <button type="button" data-type="auto" data-placeholder="IP, domain, URL, hash, phone, or email" class="type-pill active">Auto</button>
+            <button type="button" data-type="ipv4" data-placeholder="162.243.103.246" class="type-pill">IP</button>
+            <button type="button" data-type="domain" data-placeholder="malware-c2.ru" class="type-pill">Domain</button>
+            <button type="button" data-type="hash" data-placeholder="MD5, SHA1, or SHA256" class="type-pill">Hash</button>
+            <button type="button" data-type="phone" data-placeholder="+1 555-123-4567" class="type-pill">Phone</button>
+            <button type="button" data-type="email" data-placeholder="phish@evil.example" class="type-pill">Email</button>
+          </div>
+
+          <div class="flex gap-2">
+            <input
+              id="q"
+              name="q"
+              type="text"
+              required
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              placeholder="IP, domain, URL, hash, phone, or email"
+              class="input-field flex-1 min-w-0 rounded-lg px-4 py-3.5 ts-mono"
+            />
+            <button type="submit" class="btn-scan px-6 py-3.5 rounded-lg shrink-0">
+              Scan
+            </button>
+          </div>
+        </form>
+        {% if lab_scan_enabled %}
+        <p class="text-center ts-caption mt-4 max-w-lg mx-auto">
+          <span class="inline-block ts-eyebrow px-2.5 py-1 rounded mb-1" style="background: var(--accent-dim); color: var(--accent)">Lab scan on</span><br />
+          After an IP or domain lookup, use <strong style="color: var(--text-muted)">Run lab scan</strong> in the results panel (requires <code class="ts-mono-sm">scripts/scan_worker.py</code>).
+        </p>
+        {% else %}
+        <p class="text-center ts-caption mt-4 max-w-lg mx-auto">
+          Opt-in nmap/ping: set <code class="ts-mono-sm">LAB_SCAN_ENABLED=1</code> in <code class="ts-mono-sm">.env</code>, restart the app, run <code class="ts-mono-sm">python scripts/scan_worker.py</code>. The <strong style="color: var(--text-muted)">Run lab scan</strong> button appears on IP/domain results after lookup — not on this form.
+        </p>
+        {% endif %}
+      </div>
+
+      {% if intel_search_enabled %}
+      <!-- INTEL (admin) -->
+      <div id="panel-intel" class="panel px-6 sm:px-10 py-8" hidden>
+        <p class="ts-caption text-center mb-6 max-w-lg mx-auto">
+          Search narrative intel from RSS, optional web scrape, and paste/leak collectors.
+          Text is sanitized before storage; passwords are never stored.
+        </p>
+        <form
+          id="intel-search-form"
+          hx-post="/api/intel-search"
+          hx-target="#intel-results"
+          hx-swap="innerHTML"
+          hx-indicator="#loading"
+          class="max-w-xl mx-auto"
+        >
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+          <input
+            name="q"
+            type="search"
+            required
+            minlength="2"
+            maxlength="256"
+            placeholder="CVE-2026, ransomware, RAT, technique…"
+            class="input-field w-full rounded-lg px-4 py-3.5 ts-mono mb-3"
+          />
+          <div class="flex flex-wrap gap-2 mb-4 justify-center">
+            <input
+              name="tag"
+              type="text"
+              maxlength="64"
+              placeholder="Optional tag filter (cve, leak, rat…)"
+              class="input-field flex-1 min-w-[12rem] rounded-lg px-4 py-2.5 ts-mono"
+            />
+            <button type="submit" class="btn-scan px-6 py-2.5 rounded-lg shrink-0">
+              Search intel
+            </button>
+          </div>
+        </form>
+        <div id="intel-results" class="mt-6 intel-results max-w-3xl mx-auto"></div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div id="loading" class="htmx-indicator mt-6 flex justify-center items-center gap-2" style="color: var(--accent)">
+      <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+      <span class="ts-body-sm font-medium">Analyzing...</span>
+    </div>
+
+    <div id="results" class="mt-8"></div>
+
+    {% if show_history %}
+    <div
+      id="history-panel"
+      hx-get="/api/history"
+      hx-trigger="load, historyRefresh from:body"
+      hx-swap="innerHTML"
+    ></div>
+    {% endif %}
+
+  </main>
+
+  {% include "partials/site_footer.html" %}
+
+  <script src="/static/app.js?v=2"></script>
+</body>
+</html>

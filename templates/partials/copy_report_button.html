@@ -1,0 +1,11 @@
+{% if report_text %}
+<div class="flex justify-end mb-2">
+  <button type="button" class="copy-report-btn btn-outline px-4 py-2 rounded-full" data-report-target="report-payload">
+    Copy full report
+  </button>
+  <textarea id="report-payload" class="sr-only" readonly aria-hidden="true">{{ report_text }}</textarea>
+</div>
+<style>
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+</style>
+{% endif %}

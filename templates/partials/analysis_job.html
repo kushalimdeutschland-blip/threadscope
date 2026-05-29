@@ -1,0 +1,26 @@
+<div
+  id="analysis-job-{{ job_id }}"
+  class="card px-5 py-4 mt-4"
+  {% if polling %}
+  hx-get="/api/analysis-job/{{ job_id }}"
+  hx-trigger="every 3s"
+  hx-swap="outerHTML"
+  {% endif %}
+>
+  {% if polling %}
+  <div class="flex items-center gap-3">
+    <div class="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style="border-color: var(--accent); border-top-color: transparent"></div>
+    <div>
+      <p class="ts-body font-medium text-slate-300">Dynamic analysis in progress</p>
+      <p class="ts-caption mt-1">
+        Backend: {{ job.backend }} · Status: {{ job.status }}
+        {% if job.status == 'queued' %} — start <code class="ts-mono-sm">python scripts/sandbox_worker.py</code>{% endif %}
+      </p>
+    </div>
+  </div>
+  {% else %}
+  <p class="ts-body font-medium text-red-400">Dynamic analysis failed</p>
+  <p class="ts-caption mt-1">{{ error }}</p>
+  <p class="ts-caption mt-2">Static results above are still valid.</p>
+  {% endif %}
+</div>

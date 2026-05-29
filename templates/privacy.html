@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Privacy — ThreatScope</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/static/tailwind-config.js"></script>
+  <link rel="stylesheet" href="/static/theme.css?v=1" />
+</head>
+<body class="h-full antialiased">
+  <header style="border-bottom: 1px solid var(--border); background: rgba(8,12,20,0.9);" class="sticky top-0 z-10 backdrop-blur">
+    <div class="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between">
+      <a href="/" class="font-semibold text-white">ThreatScope</a>
+      <a href="/" class="ts-caption hover:underline" style="color: var(--accent)">← Home</a>
+    </div>
+  </header>
+  <main class="max-w-3xl mx-auto px-5 py-12">
+    <h1 class="text-2xl font-bold text-white mb-4">Privacy</h1>
+    <div class="space-y-4 ts-body leading-relaxed" style="color: var(--text-muted)">
+      <p>
+        <strong>No accounts.</strong> Visitors use the tool without signing up.
+        A session cookie is used only for CSRF protection on form submissions.
+      </p>
+      <p>
+        <strong>Rate limiting.</strong> Client IP addresses (or the first IP in
+        <code class="ts-mono-sm">X-Forwarded-For</code> when behind a reverse proxy) are used to enforce
+        per-visitor request limits. IPs are not published or sold.
+      </p>
+      <p>
+        <strong>Lookup history.</strong> On public deployments, recent lookup history is not shown to
+        visitors and is typically not stored. Authenticated operators may enable history for themselves.
+      </p>
+      <p>
+        <strong>File uploads.</strong> Uploaded files are hashed and may be retained on disk under
+        <code class="ts-mono-sm">data/samples/</code> by content address (SHA256) for analysis and operator review.
+        Files are not executed in the web application process.
+      </p>
+      <p>
+        <strong>Third parties.</strong> This instance uses local OSINT feeds and local Ollama.
+        Optional phone/email enrichment APIs are off unless the operator enables them in configuration.
+      </p>
+      <p class="ts-caption" style="color: var(--text-dim)">
+        Questions: contact the site operator (see repository or About page).
+      </p>
+    </div>
+  </main>
+  {% include "partials/site_footer.html" %}
+</body>
+</html>

@@ -1,0 +1,268 @@
+{% set score = threat.risk_score %}
+{% set verdict = threat.verdict %}
+{% set in_db = threat.in_database %}
+{% set meta = threat.meta or {} %}
+{% set freshness = threat.freshness_status %}
+
+<div class="card overflow-hidden">
+  {% include "partials/copy_report_button.html" %}
+  <div class="ts-card-header flex flex-wrap items-start justify-between gap-4">
+    <div class="min-w-0 flex-1">
+      <p class="ts-eyebrow mb-1.5">{{ threat.type }}</p>
+      <p class="ts-value">{{ threat.value }}</p>
+    </div>
+    <div class="flex items-center gap-4 shrink-0">
+      <div class="relative w-14 h-14 flex items-center justify-center">
+        <svg class="absolute inset-0 -rotate-90 w-14 h-14" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4"/>
+          <circle cx="28" cy="28" r="24" fill="none"
+            stroke="{% if verdict == 'UNKNOWN' %}#64748b{% elif verdict == 'STALE' %}#94a3b8{% elif score >= 70 %}#f87171{% elif score >= 20 %}#fbbf24{% else %}#4ade80{% endif %}"
+            stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="{% if verdict == 'UNKNOWN' %}0{% elif verdict == 'STALE' and threat.stored_risk_score %}{{ (threat.stored_risk_score * 1.508) | round(1) }}{% else %}{{ (score * 1.508) | round(1) }}{% endif %} 150.8"/>
+        </svg>
+        <span class="text-sm font-bold tabular-nums {% if verdict == 'UNKNOWN' %}text-slate-500{% elif verdict == 'STALE' %}text-slate-400{% elif score >= 70 %}text-red-400{% elif score >= 20 %}text-amber-400{% else %}text-green-400{% endif %}">
+          {% if verdict == 'UNKNOWN' %}—{% elif verdict == 'STALE' and threat.stored_risk_score %}{{ threat.stored_risk_score }}{% else %}{{ score }}{% endif %}
+        </span>
+      </div>
+      {% if verdict == 'MALICIOUS' %}
+      <span class="ts-badge ts-badge-malicious">{{ verdict }}</span>
+      {% elif verdict == 'SUSPICIOUS' %}
+      <span class="ts-badge ts-badge-suspicious">{{ verdict }}</span>
+      {% elif verdict == 'STALE' %}
+      <span class="ts-badge ts-badge-neutral">NOT CURRENTLY LISTED</span>
+      {% elif verdict == 'UNKNOWN' %}
+      <span class="ts-badge ts-badge-neutral">NO LOCAL DATA</span>
+      {% else %}
+      <span class="ts-badge ts-badge-clean">{{ verdict }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-px" style="background: rgba(255,255,255,0.05)">
+    <div class="px-4 py-3" style="background: #111827">
+      <p class="ts-stat-label">Database</p>
+      <p class="ts-stat-value {% if in_db %}text-[#4da3ff]{% else %}text-slate-500{% endif %}">
+        {% if in_db %}Match found{% else %}No match{% endif %}
+      </p>
+    </div>
+    <div class="px-4 py-3" style="background: #111827">
+      <p class="ts-stat-label">Last seen</p>
+      <p class="ts-stat-value text-slate-400 truncate">{{ threat.last_seen_label or '—' }}</p>
+    </div>
+    <div class="px-4 py-3 col-span-2 sm:col-span-1" style="background: #111827">
+      <p class="ts-stat-label">Feed status</p>
+      <p class="ts-stat-value {% if freshness == 'active' %}text-green-400{% elif freshness == 'stale' %}text-slate-400{% else %}text-slate-500{% endif %}">
+        {% if freshness == 'active' %}Active in feeds{% elif freshness == 'stale' %}Stale — not in current feeds{% else %}Not listed{% endif %}
+      </p>
+    </div>
+    {% if meta.malware_family or meta.category %}
+    <div class="px-4 py-3 col-span-2 sm:col-span-1" style="background: #111827">
+      <p class="ts-stat-label">Class</p>
+      <p class="text-sm text-slate-300 truncate">{{ meta.malware_family or meta.category }}</p>
+    </div>
+    {% endif %}
+    {% if threat.type == 'phone' %}
+    <div class="px-4 py-3" style="background: #111827">
+      <p class="ts-stat-label">Display</p>
+      <p class="text-sm text-slate-300">{{ meta.phone_display or threat.value }}</p>
+    </div>
+    {% if meta.phone_region %}
+    <div class="px-4 py-3" style="background: #111827">
+      <p class="ts-stat-label">Region</p>
+      <p class="text-sm text-slate-300">{{ meta.phone_region }}</p>
+    </div>
+    {% endif %}
+    {% if meta.phone_intel %}
+    <div class="px-4 py-3 col-span-2" style="background: #111827">
+      <p class="ts-stat-label">Phone intel (external)</p>
+      <p class="text-sm text-slate-300">
+        {% if meta.phone_intel.carrier %}{{ meta.phone_intel.carrier }}{% endif %}
+        {% if meta.phone_intel.line_type %} · {{ meta.phone_intel.line_type }}{% endif %}
+        {% if meta.phone_intel.country_name %} · {{ meta.phone_intel.country_name }}{% endif %}
+      </p>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% if threat.type == 'email' %}
+    <div class="px-4 py-3" style="background: #111827">
+      <p class="ts-stat-label">Domain</p>
+      <p class="text-sm text-slate-300 font-mono">{{ meta.email_domain or (threat.value.split('@')[-1] if '@' in threat.value else threat.value) }}</p>
+    </div>
+    {% if meta.email_intel %}
+    <div class="px-4 py-3 col-span-2" style="background: #111827">
+      <p class="ts-stat-label">Email intel</p>
+      <p class="text-sm text-slate-300">
+        {% if meta.email_intel.has_mx %}MX: {{ meta.email_intel.mx_hosts | join(', ') if meta.email_intel.mx_hosts else 'present' }}{% else %}No MX records{% endif %}
+        {% if meta.email_intel.disposable_hint %} · disposable domain hint{% endif %}
+        {% if meta.email_intel.reputation %} · {{ meta.email_intel.reputation }}{% endif %}
+        {% if meta.email_intel.provider == 'emailrep' %} (external){% endif %}
+      </p>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% set enrichment = meta.enrichment or {} %}
+    {% if enrichment.geoip %}
+    <div class="px-4 py-3 col-span-2" style="background: #111827">
+      <p class="ts-stat-label">GeoIP (local DB)</p>
+      {% if enrichment.geoip is mapping %}
+      <p class="text-sm text-slate-300">
+        {% if enrichment.geoip.country_name %}{{ enrichment.geoip.country_name }}{% endif %}
+        {% if enrichment.geoip.asn %} · AS{{ enrichment.geoip.asn }}{% endif %}
+        {% if enrichment.geoip.asn_org %} {{ enrichment.geoip.asn_org }}{% endif %}
+      </p>
+      {% else %}
+      {% for geo in enrichment.geoip[:3] %}
+      <p class="ts-caption font-mono">{{ geo.ip }} — {{ geo.country_name or '?' }}{% if geo.asn_org %} ({{ geo.asn_org }}){% endif %}</p>
+      {% endfor %}
+      {% endif %}
+    </div>
+    {% endif %}
+    {% if enrichment.actor_hints %}
+    <div class="px-4 py-3 col-span-2" style="background: #111827">
+      <p class="ts-stat-label">Threat actor hints</p>
+      <p class="text-sm text-slate-300">{{ enrichment.actor_hints | join(', ') }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if verdict == 'UNKNOWN' %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08); background: rgba(100,116,139,0.06)">
+    <p class="ts-caption leading-relaxed">
+      This indicator is not in the local OSINT database. Absence of a match does not mean the indicator is safe — check external sources if needed.
+    </p>
+  </div>
+  {% elif verdict == 'STALE' %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08); background: rgba(148,163,184,0.06)">
+    <p class="ts-caption leading-relaxed">
+      Previously flagged (score {{ threat.stored_risk_score }}), but not seen in active OSINT feeds for {{ threat.days_since_seen }} days.
+      The IP or domain may have been cleaned, seized, or reassigned to legitimate use.
+    </p>
+  </div>
+  {% endif %}
+
+  {% if threat.active_sources %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08)">
+    <p class="ts-eyebrow mb-2">Active sources</p>
+    <div class="flex flex-wrap gap-1.5">
+      {% for src in threat.active_sources %}
+      <span class="ts-body-sm px-2.5 py-1 rounded text-slate-300" style="background: rgba(77,163,255,0.12)">{{ src.source }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if threat.tags %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08)">
+    <div class="flex flex-wrap gap-1.5">
+      {% for tag in threat.tags %}
+      <span class="ts-body-sm px-2.5 py-1 rounded text-slate-400" style="background: rgba(255,255,255,0.06)">{{ tag }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if meta.intel_context %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08); background: rgba(77,163,255,0.04)">
+    <p class="ts-eyebrow mb-2">Related intel</p>
+    <ul class="space-y-3">
+      {% for item in meta.intel_context[:3] %}
+      <li>
+        <p class="text-sm text-slate-200 leading-snug">
+          {% if item.url %}
+          <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer" class="hover:underline" style="color: var(--accent)">{{ item.title }}</a>
+          {% else %}
+          {{ item.title }}
+          {% endif %}
+          <span class="ts-caption text-slate-500"> · {{ item.source }}{% if item.published_at %} · {{ item.published_at[:10] }}{% endif %}</span>
+        </p>
+        {% if item.snippet %}
+        <p class="ts-caption mt-1 leading-relaxed text-slate-400">{{ item.snippet }}</p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="ts-caption mt-2 text-slate-500">Narrative context from local intel collection — not a confirmed malicious verdict.</p>
+  </div>
+  {% endif %}
+
+  {% if escalation %}
+  {% set copy_value = escalation.get('copy_value') %}
+  {% set copy_sha256 = escalation.get('copy_sha256') %}
+  {% set copy_sample_path = escalation.get('copy_sample_path') %}
+  {% set suggested_commands = escalation.get('suggested_commands') or [] %}
+  {% set escalation_hints = escalation.get('escalation_hints') or [] %}
+  {% include "partials/escalation_panel.html" %}
+  {% endif %}
+
+  {% if threat.type in ['ipv4', 'ipv6', 'domain'] %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08); background: rgba(77,163,255,0.04)">
+    <p class="ts-eyebrow mb-2">Active lab scan (opt-in)</p>
+    {% if lab_scan_enabled|default(false) %}
+    <p class="ts-caption mb-3">Ping + safe nmap from your homelab worker. Only scan targets you are authorized to test.</p>
+    <form
+      hx-post="/api/lab-scan"
+      hx-target="#scan-job-slot"
+      hx-swap="innerHTML"
+      class="inline"
+    >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+      <input type="hidden" name="target" value="{{ threat.value }}" />
+      <input type="hidden" name="type" value="{{ threat.type }}" />
+      <button type="submit" class="btn-outline px-5 py-2.5 rounded-lg">Run lab scan</button>
+    </form>
+    <div id="scan-job-slot" class="mt-2"></div>
+    {% else %}
+    <p class="ts-caption">
+      Disabled. Set <code class="ts-mono-sm">LAB_SCAN_ENABLED=1</code>, restart the web app, and run <code class="ts-mono-sm">python scripts/scan_worker.py</code> to enable <strong class="text-slate-400">Run lab scan</strong>.
+    </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if threat.in_database and threat.verdict in ['MALICIOUS', 'SUSPICIOUS', 'CLEAN', 'STALE'] %}
+  <div id="feedback-{{ threat.value }}" style="margin-top: 0.75rem; padding: 0 1.25rem; font-size: 13px; color: #94a3b8;">
+    <form
+      hx-post="/api/feedback"
+      hx-target="#feedback-{{ threat.value }}"
+      hx-swap="outerHTML"
+      style="display: inline-flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;"
+    >
+      <input type="hidden" name="value" value="{{ threat.value }}">
+      <input type="hidden" name="type" value="{{ threat.type }}">
+      <input type="hidden" name="observed_verdict" value="{{ threat.verdict }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <span>Verdict correct?</span>
+      <button
+        type="submit"
+        name="expected_verdict"
+        value="{{ threat.verdict }}"
+        style="font-size: 12px; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: #94a3b8; cursor: pointer;"
+      >✓ Yes</button>
+      {% if threat.verdict in ['MALICIOUS', 'SUSPICIOUS'] %}
+      <button
+        type="submit"
+        name="expected_verdict"
+        value="CLEAN"
+        style="font-size: 12px; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: #94a3b8; cursor: pointer;"
+      >✗ Flag as false positive</button>
+      {% else %}
+      <button
+        type="submit"
+        name="expected_verdict"
+        value="MALICIOUS"
+        style="font-size: 12px; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: #94a3b8; cursor: pointer;"
+      >✗ Flag as false negative</button>
+      {% endif %}
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="px-5 py-4" style="border-top: 1px solid rgba(255,255,255,0.08); background: #0d1117">
+    <p class="ts-section-title mb-2>Analysis</p>
+    <p class="text-sm leading-relaxed text-slate-300">{{ summary }}</p>
+  </div>
+</div>
+
+{% if not in_db %}
+<p class="mt-3 text-center ts-caption">Not in local database.</p>
+{% endif %}

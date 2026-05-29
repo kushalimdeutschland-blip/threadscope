@@ -1,0 +1,83 @@
+{# Pentester next steps — copy IOCs / paths; commands are suggestions only (never executed). #}
+{% set show_escalation = verdict in ['MALICIOUS', 'SUSPICIOUS', 'UNKNOWN', 'STALE'] %}
+{% if show_escalation %}
+{% set collapsible = escalation_collapsible | default(false) %}
+{% macro escalation_body() %}
+  <p class="ts-caption text-slate-500 mb-3">Copy values and run these on an <strong>isolated VM</strong> — ThreatScope does not execute them.</p>
+
+  <div class="flex flex-wrap gap-2 mb-4">
+    {% if copy_value %}
+    <button type="button" class="copy-btn btn-outline ts-caption px-3 py-1 rounded-full" data-copy="{{ copy_value }}">
+      Copy indicator
+    </button>
+    {% endif %}
+    {% if copy_sha256 %}
+    <button type="button" class="copy-btn btn-outline ts-caption px-3 py-1 rounded-full" data-copy="{{ copy_sha256 }}">
+      Copy SHA256
+    </button>
+    {% endif %}
+    {% if copy_sample_path %}
+    <button type="button" class="copy-btn btn-outline ts-caption px-3 py-1 rounded-full" data-copy="{{ copy_sample_path }}">
+      Copy sample path
+    </button>
+    {% endif %}
+  </div>
+
+  {% if re_workflow %}
+  <p class="ts-eyebrow mb-1" style="color: #64748b">RE workflow</p>
+  {% if re_workflow_source == 'ai' %}
+  <p class="ts-caption mb-2">Tailored to this sample (local Ollama)</p>
+  {% elif file_kind is defined and file_kind %}
+  <p class="ts-caption mb-2">Generic workflow for {{ file_kind }}</p>
+  {% endif %}
+  <ol class="space-y-2 mb-4 ts-caption text-slate-400 list-decimal list-inside">
+    {% for step in re_workflow %}
+    <li>
+      <span class="font-medium text-slate-300">{{ step.title }}</span>
+      <span class="text-slate-500"> — {{ step.detail }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+
+  {% if suggested_commands %}
+  <p class="ts-eyebrow mb-2" style="color: #64748b">Suggested commands</p>
+  <ul class="space-y-2 ts-caption font-mono text-slate-400">
+    {% for cmd in suggested_commands %}
+    <li class="flex gap-2 items-start">
+      <button type="button" class="copy-btn shrink-0 ts-mono-sm px-2.5 py-1 rounded border border-slate-700 text-slate-500 hover:text-slate-300" data-copy="{{ cmd }}">copy</button>
+      <code class="break-all leading-relaxed">{{ cmd }}</code>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if escalation_hints %}
+  <ul class="mt-3 space-y-1 ts-caption text-slate-500 list-disc list-inside">
+    {% for hint in escalation_hints %}
+    <li>{{ hint }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+{% endmacro %}
+
+{% if collapsible %}
+<details class="group" style="border-top: 1px solid rgba(255,255,255,0.08); background: rgba(77,163,255,0.04)">
+  <summary class="px-5 py-4 cursor-pointer list-none flex items-start justify-between gap-3 select-none">
+    <div>
+      <p class="ts-eyebrow" style="color: #4da3ff">Next steps (manual lab)</p>
+      <p class="ts-caption text-slate-500 mt-1">Reverse engineering on isolated VM</p>
+    </div>
+    <span class="text-slate-600 text-xs mt-0.5 group-open:rotate-180 transition-transform shrink-0" aria-hidden="true">▼</span>
+  </summary>
+  <div class="px-5 pb-4">
+    {{ escalation_body() }}
+  </div>
+</details>
+{% else %}
+<div class="px-5 py-4" style="border-top: 1px solid rgba(255,255,255,0.08); background: rgba(77,163,255,0.04)">
+  <p class="ts-eyebrow mb-3" style="color: #4da3ff">Next steps (manual lab)</p>
+  {{ escalation_body() }}
+</div>
+{% endif %}
+{% endif %}

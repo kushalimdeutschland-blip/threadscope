@@ -1,0 +1,22 @@
+[Unit]
+Description=ThreatScope web application
+After=network.target ollama.service
+Wants=ollama.service
+
+[Service]
+Type=simple
+User=threatscope
+Group=threatscope
+WorkingDirectory=/opt/threatscope
+EnvironmentFile=/opt/threatscope/.env
+ExecStart=/opt/threatscope/venv/bin/uvicorn main:app \
+  --host 127.0.0.1 \
+  --port 8000 \
+  --proxy-headers \
+  --forwarded-allow-ips=127.0.0.1
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

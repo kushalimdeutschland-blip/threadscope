@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>Admin — ThreatScope</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/static/tailwind-config.js"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <link rel="stylesheet" href="/static/theme.css?v=1" />
+</head>
+<body class="h-full antialiased">
+  <header style="border-bottom: 1px solid var(--border); background: rgba(8,12,20,0.9);">
+    <div class="max-w-4xl mx-auto px-5 h-14 flex items-center justify-between">
+      <a href="/" class="font-semibold text-white">ThreatScope</a>
+      <form method="post" action="/admin/logout" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+        <button type="submit" class="ts-caption hover:underline" style="color: var(--text-muted)">Sign out</button>
+      </form>
+    </div>
+  </header>
+  <main class="max-w-4xl mx-auto px-5 py-12">
+    <h1 class="text-2xl font-bold text-white mb-8">Admin dashboard</h1>
+    <div class="grid sm:grid-cols-2 gap-4 mb-10">
+      <a href="/?panel=intel" class="card block p-6 hover:border-slate-500 transition-colors">
+        <h2 class="font-semibold text-white mb-2">Intel search</h2>
+        <p class="ts-caption" style="color: var(--text-muted)">
+          FTS over collected narratives — opens the main app Intel tab.
+        </p>
+      </a>
+      <a href="/api/feed-accuracy" class="card block p-6 hover:border-slate-500 transition-colors">
+        <h2 class="font-semibold text-white mb-2">Feed accuracy</h2>
+        <p class="ts-caption" style="color: var(--text-muted)">
+          Per-feed analyst feedback stats from the local database.
+        </p>
+      </a>
+      <a href="/" class="card block p-6 hover:border-slate-500 transition-colors">
+        <h2 class="font-semibold text-white mb-2">Public lookup</h2>
+        <p class="ts-caption" style="color: var(--text-muted)">
+          Return to indicator and file analysis UI.
+        </p>
+      </a>
+    </div>
+
+    {% if collector_runs %}
+    <section class="card p-6">
+      <h2 class="font-semibold text-white mb-4">Recent intel collector runs</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full ts-caption text-left" style="color: var(--text-muted)">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border)">
+              <th class="py-2 pr-4">Collector</th>
+              <th class="py-2 pr-4">Started</th>
+              <th class="py-2 pr-4">New</th>
+              <th class="py-2">Errors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for run in collector_runs %}
+            <tr style="border-bottom: 1px solid var(--border)">
+              <td class="py-2 pr-4">{{ run.collector }}</td>
+              <td class="py-2 pr-4 ts-mono-sm">{{ run.started_at }}</td>
+              <td class="py-2 pr-4">{{ run.new_items }}</td>
+              <td class="py-2">{{ run.errors }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,218 @@
+{% set score = threat.risk_score %}
+{% set verdict = threat.verdict %}
+{% set in_db = threat.in_database %}
+{% set meta = threat.meta or {} %}
+{% set hashes = threat.hashes or {} %}
+{% set analysis_mode = meta.get('analysis_mode', 'static') %}
+{% set dynamic_pending = analysis_mode == 'static+dynamic_pending' %}
+{% set has_dynamic = analysis_mode == 'static+dynamic' or threat.get('dynamic') %}
+{% set yara_matches = meta.get('yara_matches') or [] %}
+
+<div class="card overflow-hidden">
+  {% include "partials/copy_report_button.html" %}
+  <div class="ts-card-header flex flex-wrap items-start justify-between gap-4">
+    <div class="min-w-0 flex-1">
+      <p class="ts-eyebrow mb-1.5" style="color: #64748b">
+        {{ threat.file_kind }}
+        {% if has_dynamic %}· static + dynamic{% elif dynamic_pending %}· static (dynamic queued){% else %}· static{% endif %}
+      </p>
+      <p class="ts-value">{{ threat.value }}</p>
+      <p class="ts-caption text-slate-600 mt-1">{{ (meta.size_bytes / 1024)|round(1) }} KB</p>
+    </div>
+    <div class="flex items-center gap-4 shrink-0">
+      <div class="relative w-14 h-14 flex items-center justify-center">
+        <svg class="absolute inset-0 -rotate-90 w-14 h-14" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4"/>
+          <circle cx="28" cy="28" r="24" fill="none"
+            stroke="{% if verdict == 'UNKNOWN' %}#64748b{% elif score >= 70 %}#f87171{% elif score >= 20 %}#fbbf24{% else %}#4ade80{% endif %}"
+            stroke-width="4" stroke-linecap="round"
+            stroke-dasharray="{% if verdict == 'UNKNOWN' %}0{% else %}{{ (score * 1.508) | round(1) }}{% endif %} 150.8"/>
+        </svg>
+        <span class="text-sm font-bold tabular-nums {% if verdict == 'UNKNOWN' %}text-slate-500{% elif score >= 70 %}text-red-400{% elif score >= 20 %}text-amber-400{% else %}text-green-400{% endif %}">
+          {% if verdict == 'UNKNOWN' %}—{% else %}{{ score }}{% endif %}
+        </span>
+      </div>
+      {% if verdict == 'MALICIOUS' %}
+      <span class="ts-badge ts-badge-malicious">{{ verdict }}</span>
+      {% elif verdict == 'SUSPICIOUS' %}
+      <span class="ts-badge ts-badge-suspicious">{{ verdict }}</span>
+      {% elif verdict == 'UNKNOWN' %}
+      <span class="ts-badge ts-badge-neutral">NO LOCAL MATCH</span>
+      {% else %}
+      <span class="ts-badge ts-badge-clean">{{ verdict }}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if verdict == 'UNKNOWN' %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08); background: rgba(100,116,139,0.06)">
+    <p class="ts-caption leading-relaxed">
+      This file is not in the local hash intelligence database and matched no YARA signatures.
+      Static heuristics did not raise strong concerns — that is <strong>not</strong> proof the file is safe.
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-2 gap-px" style="background: rgba(255,255,255,0.05)">
+    <div class="px-4 py-3" style="background: #111827">
+      <p class="ts-eyebrow mb-1" style="color: #64748b">Hash DB</p>
+      <p class="text-sm font-medium {% if in_db %}text-[#4da3ff]{% else %}text-slate-500{% endif %}">
+        {% if in_db %}Match{% else %}No match{% endif %}
+      </p>
+    </div>
+    <div class="px-4 py-3" style="background: #111827">
+      <p class="ts-eyebrow mb-1" style="color: #64748b">Mode</p>
+      <p class="text-sm text-slate-400">
+        {% if has_dynamic %}Static + dynamic ({{ meta.get('sandbox_backend', 'sandbox') }}){% elif dynamic_pending %}Dynamic queued{% else %}Static only{% endif %}
+      </p>
+    </div>
+    {% if meta.get('package') %}
+    <div class="px-4 py-3 col-span-2" style="background: #111827">
+      <p class="ts-eyebrow mb-1" style="color: #64748b">Package</p>
+      <p class="text-sm font-mono text-slate-300 break-all">{{ meta.package }}</p>
+      {% if meta.get('app_name') %}
+      <p class="ts-caption text-slate-500 mt-0.5">{{ meta.app_name }}</p>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% if meta.get('permissions') %}
+    <div class="px-4 py-3 col-span-2" style="background: #111827">
+      <p class="ts-eyebrow mb-1" style="color: #64748b">Permissions</p>
+      <p class="ts-caption text-slate-400 leading-relaxed">
+        {% for perm in meta.permissions[:12] %}
+        <span class="block font-mono">{{ perm }}</span>
+        {% endfor %}
+        {% if meta.permissions|length > 12 %}
+        <span class="text-slate-600">… and {{ meta.permissions|length - 12 }} more</span>
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+    {% if meta.get('embedded_urls') %}
+    <div class="px-4 py-3 col-span-2" style="background: #111827">
+      <p class="ts-eyebrow mb-1" style="color: #64748b">Embedded URLs</p>
+      <p class="ts-caption font-mono text-slate-400 break-all leading-relaxed">
+        {% for url in meta.embedded_urls[:8] %}
+        <span class="block">{{ url }}</span>
+        {% endfor %}
+      </p>
+    </div>
+    {% endif %}
+    {% if meta.get('embedded_ips') %}
+    <div class="px-4 py-3 col-span-2" style="background: #111827">
+      <p class="ts-eyebrow mb-1" style="color: #64748b">Embedded IPs</p>
+      <p class="ts-caption font-mono text-slate-400">{{ meta.embedded_ips[:8] | join(', ') }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if hashes.sha256 or hashes.md5 %}
+  <div class="px-5 py-3 space-y-2" style="border-top: 1px solid rgba(255,255,255,0.08)">
+    <p class="ts-eyebrow" style="color: #64748b">Hashes</p>
+    {% if hashes.sha256 %}
+    <div>
+      <p class="ts-eyebrow mb-0.5">SHA256</p>
+      <p class="font-mono ts-caption text-slate-500 break-all">{{ hashes.sha256 }}</p>
+    </div>
+    {% endif %}
+    {% if hashes.sha1 %}
+    <div>
+      <p class="ts-eyebrow mb-0.5">SHA1</p>
+      <p class="font-mono ts-caption text-slate-500 break-all">{{ hashes.sha1 }}</p>
+    </div>
+    {% endif %}
+    {% if hashes.md5 %}
+    <div>
+      <p class="ts-eyebrow mb-0.5">MD5</p>
+      <p class="font-mono ts-caption text-slate-500 break-all">{{ hashes.md5 }}</p>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if meta.get('yara_status') %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08)">
+    <p class="ts-eyebrow mb-1" style="color: #64748b">YARA</p>
+    {% if meta.get('yara_match_count', 0) > 0 %}
+    <p class="text-sm text-red-400 font-medium">{{ meta.yara_match_count }} rule(s) matched</p>
+    <p class="ts-caption text-slate-500 mt-0.5 mb-2">{{ meta.yara_rules_loaded }} rules loaded</p>
+    <ul class="space-y-1.5 max-h-40 overflow-y-auto">
+      {% for m in yara_matches %}
+      <li class="ts-caption rounded px-2 py-1" style="background: rgba(255,255,255,0.04)">
+        <span class="font-mono text-red-300">{{ m.rule }}</span>
+        {% if m.namespace %}
+        <span class="text-slate-600"> · {{ m.namespace }}</span>
+        {% endif %}
+        {% if m.tags %}
+        <span class="text-slate-500 block mt-0.5">{{ m.tags | join(', ') }}</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% elif meta.yara_status == 'ok' %}
+    <p class="text-sm text-slate-400">No signature matches ({{ meta.yara_rules_loaded }} rules)</p>
+    {% else %}
+    <p class="text-sm text-slate-500">{{ meta.get('yara_message', 'YARA scan skipped') }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if threat.tags %}
+  <div class="px-5 py-3" style="border-top: 1px solid rgba(255,255,255,0.08)">
+    <div class="flex flex-wrap gap-1.5">
+      {% for tag in threat.tags %}
+      <span class="ts-caption px-2 py-0.5 rounded text-slate-400" style="background: rgba(255,255,255,0.06)">{{ tag }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if threat.findings %}
+  <div class="px-5 py-3 space-y-2" style="border-top: 1px solid rgba(255,255,255,0.08)">
+    <p class="ts-eyebrow mb-1" style="color: #64748b">Findings</p>
+    {% for f in threat.findings %}
+    <div class="flex gap-3 ts-body-sm py-1.5">
+      <span class="shrink-0 w-1.5 h-1.5 rounded-full mt-1.5
+        {% if f.severity == 'critical' %}bg-red-400
+        {% elif f.severity == 'warning' %}bg-amber-400
+        {% else %}bg-slate-600{% endif %}"></span>
+      <div>
+        <p class="ts-finding-title">
+          {{ f.title }}
+          {% if f.source %}
+          <span class="ts-eyebrow ml-1.5 px-1.5 py-0.5 rounded inline-block
+            {% if f.source == 'signature' %}text-red-300/80
+            {% elif f.source == 'intel' %}text-[#5eb0ff]/80
+            {% else %}text-slate-600{% endif %}">{{ f.source }}</span>
+          {% endif %}
+        </p>
+        <p class="ts-finding-detail">{{ f.detail }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if escalation %}
+  {% set copy_value = escalation.get('copy_value') %}
+  {% set copy_sha256 = escalation.get('copy_sha256') %}
+  {% set copy_sample_path = escalation.get('copy_sample_path') %}
+  {% set suggested_commands = escalation.get('suggested_commands') or [] %}
+  {% set escalation_hints = escalation.get('escalation_hints') or [] %}
+  {% set re_workflow = escalation.get('re_workflow') or [] %}
+  {% set re_workflow_source = escalation.get('re_workflow_source', 'static') %}
+  {% set file_kind = threat.file_kind %}
+  {% set escalation_collapsible = true %}
+  {% include "partials/escalation_panel.html" %}
+  {% endif %}
+
+  <div class="px-5 py-4" style="border-top: 1px solid rgba(255,255,255,0.08); background: #0d1117">
+    <p class="ts-eyebrow mb-2" style="color: #4da3ff">AI analyst summary</p>
+    <p class="text-sm leading-relaxed text-slate-300">{{ summary }}</p>
+  </div>
+</div>
+
+{% if job_id and job %}
+{% set error = none %}
+{% include "partials/analysis_job.html" %}
+{% endif %}

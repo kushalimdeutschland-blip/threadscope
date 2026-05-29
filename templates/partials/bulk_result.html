@@ -1,0 +1,55 @@
+<div class="card overflow-hidden max-w-4xl mx-auto">
+  {% include "partials/copy_report_button.html" %}
+  <div class="ts-card-header">
+    <p class="ts-eyebrow mb-1">Bulk lookup</p>
+    <p class="ts-caption">{{ rows|length }} indicator(s) — max 50 per request</p>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="ts-table w-full text-left">
+      <thead>
+        <tr style="border-bottom: 1px solid var(--border)">
+          <th>Input</th>
+          <th>Type</th>
+          <th>Verdict</th>
+          <th>Score</th>
+          <th>DB</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr style="border-top: 1px solid rgba(255,255,255,0.06)">
+          <td class="ts-mono text-slate-300 break-all max-w-[14rem]">{{ row.value }}</td>
+          <td class="text-slate-500">{{ row.type or '—' }}</td>
+          <td>
+            {% if row.error %}
+            <span class="text-slate-600">{{ row.error[:40] }}</span>
+            {% elif row.verdict == 'MALICIOUS' %}
+            <span class="text-red-400 font-medium">{{ row.verdict }}</span>
+            {% elif row.verdict == 'SUSPICIOUS' %}
+            <span class="text-amber-400 font-medium">{{ row.verdict }}</span>
+            {% elif row.verdict == 'UNKNOWN' %}
+            <span class="text-slate-400">UNKNOWN</span>
+            {% elif row.verdict == 'STALE' %}
+            <span class="text-slate-400">STALE</span>
+            {% else %}
+            <span class="text-green-400 font-medium">{{ row.verdict or '—' }}</span>
+            {% endif %}
+          </td>
+          <td class="tabular-nums text-slate-400">{{ row.risk_score if row.risk_score is not none else '—' }}</td>
+          <td class="{% if row.in_database %}text-[#5eb0ff]{% else %}text-slate-600{% endif %}">
+            {% if row.in_database %}yes{% else %}no{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="ts-card-body text-center" style="border-top: 1px solid var(--border)">
+    <a
+      href="/api/export/blocklist.csv?min_score=70"
+      class="ts-body-sm hover:underline"
+      style="color: var(--accent)"
+      download
+    >Download full local blocklist (CSV, score ≥ 70)</a>
+  </div>
+</div>

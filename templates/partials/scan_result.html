@@ -1,0 +1,27 @@
+{% include "partials/result.html" %}
+
+<div class="card px-5 py-4 mt-4" style="background: #0d1117">
+  <p class="ts-section-title mb-2">Lab scan results</p>
+  {% if report.host_up %}
+  <p class="ts-body text-green-400 mb-2">Host responded to ping or nmap</p>
+  {% else %}
+  <p class="ts-body text-slate-400 mb-2">Host did not respond (may be filtered or down)</p>
+  {% endif %}
+  {% if report.ping and report.ping.rtt_ms is not none %}
+  <p class="ts-caption mb-2">Ping RTT: {{ report.ping.rtt_ms }} ms</p>
+  {% endif %}
+  {% if report.open_ports %}
+  <p class="ts-eyebrow mb-1">Open ports ({{ report.open_ports | length }})</p>
+  <div class="space-y-1.5">
+    {% for port in report.open_ports[:15] %}
+    <p class="ts-mono text-slate-300">
+      {{ port.port }}/{{ port.protocol }}
+      {% if port.service %} — {{ port.service }}{% endif %}
+      {% if port.product %} ({{ port.product }}{% if port.version %} {{ port.version }}{% endif %}){% endif %}
+    </p>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="ts-caption">No open ports in top-50 TCP scan.</p>
+  {% endif %}
+</div>
