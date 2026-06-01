@@ -39,12 +39,12 @@ chmod +x scripts/vps-bootstrap.sh
 bash scripts/vps-bootstrap.sh
 ```
 
-Defaults: `REPO_DIR=$HOME/threadscope`, public HTTP on `167.233.16.244`.
+Defaults: `REPO_DIR=/opt/threatscope`, public HTTP on `167.233.16.244`.
 
-Custom paths:
+Alternate path (e.g. root home):
 
 ```bash
-REPO_DIR=/opt/threatscope bash scripts/vps-bootstrap.sh
+REPO_DIR=~/threadscope bash scripts/vps-bootstrap.sh
 ```
 
 Set admin password hash (bcrypt) before bootstrap:
@@ -64,6 +64,16 @@ The script will:
 - `curl` local `/health`
 
 First feed ingest can take several minutes.
+
+If one feed fails (e.g. **CISA KEV HTTP 403** from the VPS IP), bootstrap still continues; other feeds are ingested. Re-run later:
+
+```bash
+systemctl stop threatscope
+sudo -u threatscope ./venv/bin/python ingest_feeds.py --feed cisa_kev
+systemctl start threatscope
+```
+
+Or skip KEV for now: `ingest_feeds.py` logs `ERROR: failed to download CISA KEV` and exits `1`, but the DB already has the other feeds.
 
 ---
 

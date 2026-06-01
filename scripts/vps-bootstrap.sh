@@ -6,10 +6,16 @@
 #
 # Does NOT run ingest_samples.py (lab-only).
 #
-# Usage (after git clone):
-#   cd ~/threadscope && bash scripts/vps-bootstrap.sh
+# Usage (on VPS as root, from repo root or after clone):
+#   cd /opt/threatscope && bash scripts/vps-bootstrap.sh
 #
-#   REPO_DIR=/opt/threatscope bash scripts/vps-bootstrap.sh
+# Environment (export or prefix on the same line):
+#   REPO_DIR          Install path (default: /opt/threatscope)
+#   VPS_IP            Public IP for ALLOWED_HOSTS / nginx (default: 167.233.16.244)
+#   BOOTSTRAP_ADMIN_HASH  bcrypt for ADMIN_PASSWORD_HASH (recommended)
+#   THREATSCOPE_REPO_URL  Git remote (default: project GitHub)
+#   THREATSCOPE_BRANCH    Branch to clone/pull (default: main)
+#
 #   BOOTSTRAP_ADMIN_HASH='$2b$12$...' bash scripts/vps-bootstrap.sh
 #
 set -euo pipefail
@@ -21,7 +27,7 @@ REPO_URL="${THREATSCOPE_REPO_URL:-https://github.com/kushalimdeutschland-blip/th
 BRANCH="${THREATSCOPE_BRANCH:-main}"
 ADMIN_HASH="${BOOTSTRAP_ADMIN_HASH:-${ADMIN_PASSWORD_HASH:-}}"
 
-REPO_DIR="${REPO_DIR:-$HOME/threadscope}"
+REPO_DIR="${REPO_DIR:-/opt/threatscope}"
 REPO_DIR="${REPO_DIR/#\~/$HOME}"
 
 if [[ ! -d "$REPO_DIR" ]]; then
@@ -122,7 +128,9 @@ chown -R threatscope:threatscope "$REPO_DIR/data"
 
 echo "=== [7/10] Feed ingest (service stopped) ==="
 systemctl stop threatscope 2>/dev/null || true
-sudo -u threatscope "$REPO_DIR/venv/bin/python" "$REPO_DIR/ingest_feeds.py"
+if ! sudo -u threatscope "$REPO_DIR/venv/bin/python" "$REPO_DIR/ingest_feeds.py"; then
+  echo "WARNING: ingest_feeds.py exited non-zero (e.g. CISA 403). Other feeds may have loaded; continuing bootstrap."
+fi
 
 echo "=== [8/10] systemd + nginx ==="
 sed "s|/opt/threatscope|$REPO_DIR|g" "$REPO_DIR/deploy/systemd/threatscope.service" \

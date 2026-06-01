@@ -61,7 +61,12 @@ async def download_feed_conditional(
         await database.upsert_feed_sync_state(feed_key, checked=True)
         return DownloadResult(status="unchanged")
 
-    resp.raise_for_status()
+    if resp.status_code >= 400:
+        await database.upsert_feed_sync_state(feed_key, checked=True)
+        return DownloadResult(
+            status="error",
+            error=f"HTTP {resp.status_code} for {url}",
+        )
     if len(resp.content) > max_bytes:
         return DownloadResult(
             status="error",
