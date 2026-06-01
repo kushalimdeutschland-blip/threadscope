@@ -19,6 +19,7 @@ Copy [`.env.example`](../../.env.example) to `.env`. Never commit `.env`.
 | `PUBLIC_BLOCKLIST_RATE_LIMIT` | `5/hour` | Blocklist CSV when `THREATSCOPE_PUBLIC=1` |
 | `TRUST_PROXY_HEADERS` | on in production | Use `X-Forwarded-For` / `X-Real-IP` for rate limits behind Nginx |
 | `THREATSCOPE_PUBLIC` | off | Public site profile: stricter limits, no visitor history, static-only uploads |
+| `ADMIN_ALLOW_DYNAMIC` | off | With `THREATSCOPE_PUBLIC=1`: signed-in admin may opt into dynamic sandbox on file upload |
 | `FILE_UPLOAD_RATE_LIMIT` | `10/hour` | Per-IP file upload limit |
 | `MAX_BODY_BYTES` | `4096` | Max form POST body size |
 | `MAX_UPLOAD_BYTES` | `33554432` | Max file upload size (32 MB) |

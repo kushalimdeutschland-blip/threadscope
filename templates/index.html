@@ -81,8 +81,13 @@
               class="mt-1 rounded border-slate-600"
             />
             <span class="ts-caption leading-relaxed">
+              {% if admin_dynamic_opt_in %}
+              <strong>Admin:</strong> run dynamic analysis (opt-in). Requires
+              <code class="ts-mono-sm">sandbox_worker.py</code> and a configured sandbox backend.
+              {% else %}
               Run <strong>APK</strong> dynamic analysis via MobSF (opt-in). Requires
               <code class="ts-mono-sm">sandbox_worker.py</code> and Docker MobSF — never in the web process.
+              {% endif %}
               <span id="dynamic-exe-hint" class="block mt-1 ts-eyebrow" hidden>
                 .exe dynamic detonation needs a KVM CAPE lab; homelab installs use static + YARA for executables.
               </span>

@@ -14,10 +14,11 @@ Privacy-first homelab SOC gatekeeper — **FastAPI + HTMX + SQLite + Ollama + YA
 | Configure environment variables | [user/configuration.md](user/configuration.md) |
 | Understand feeds & file analysis | [user/feeds-and-analysis.md](user/feeds-and-analysis.md) |
 | Enable intel collection (RSS, paste, leaks) | [dev/intel-collection.md](dev/intel-collection.md) |
-| Deploy to a VPS | [ops/deployment.md](ops/deployment.md) |
+| Deploy to a VPS | [ops/deployment.md](ops/deployment.md), [ops/vps-manual-setup.md](ops/vps-manual-setup.md) |
 | Modify the codebase (human dev) | [dev/development.md](dev/development.md) |
 | Work on SQLite / ingest (AI agent) | [dev/database.md](dev/database.md) + [../AGENTS.md](../AGENTS.md) |
 | See architecture & roadmap | [dev/architecture.md](dev/architecture.md) |
+| Lab sample hashes → public VPS | [dev/architecture-two-tier.md](dev/architecture-two-tier.md), [dev/sample-hash-ingest.md](dev/sample-hash-ingest.md) |
 | Plug in a custom sandbox script | [dev/custom-sandbox.md](dev/custom-sandbox.md) |
 
 ---
@@ -37,6 +38,8 @@ Privacy-first homelab SOC gatekeeper — **FastAPI + HTMX + SQLite + Ollama + YA
 | Doc | Contents |
 |-----|----------|
 | [architecture.md](dev/architecture.md) | Stack, system diagram, version history, roadmap |
+| [architecture-two-tier.md](dev/architecture-two-tier.md) | Lab ingest vs public VPS, DB sync |
+| [sample-hash-ingest.md](dev/sample-hash-ingest.md) | `ingest_samples.py`, private git repos, hash upsert |
 | [development.md](dev/development.md) | Request flows, file map, verdict logic, conventions |
 | [database.md](dev/database.md) | Schema, CRUD, feed lifecycle, SQL examples |
 | [custom-sandbox.md](dev/custom-sandbox.md) | `SANDBOX_BACKEND=script` contract and example |
@@ -47,6 +50,7 @@ Privacy-first homelab SOC gatekeeper — **FastAPI + HTMX + SQLite + Ollama + YA
 | Doc | Contents |
 |-----|----------|
 | [deployment.md](ops/deployment.md) | VPS checklist, Nginx, systemd, cron, attribution |
+| [vps-manual-setup.md](ops/vps-manual-setup.md) | Copy-paste bootstrap when already SSH'd on the VPS |
 
 ### Root files
 

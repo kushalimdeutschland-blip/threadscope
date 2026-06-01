@@ -1,0 +1,12 @@
+# Copy to data/sample_repos.yaml (data/ is gitignored).
+# Passwords / tokens: set env vars only — never commit secrets.
+#
+# password_env: name of an environment variable holding the git credential
+#   (HTTPS token or password). Example: SAMPLE_REPO_ACME_PASSWORD
+#
+repos:
+  - name: acme-samples
+    url: https://github.com/example/malware-samples.git
+    branch: main
+    # tag: v2024.01   # optional; overrides branch when set
+    password_env: SAMPLE_REPO_ACME_PASSWORD

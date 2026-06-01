@@ -97,6 +97,12 @@ def _admin_rate_exempt() -> bool:
     """slowapi exempt_when: signed-in admin skips visitor rate limits."""
     return is_admin_context()
 
+
+def _allow_dynamic_sandbox(request: Request) -> bool:
+    app_settings = getattr(request.app.state, "settings", settings)
+    is_admin = getattr(request.state, "is_admin", False)
+    return app_settings.allow_dynamic_for_request(is_admin)
+
 IndicatorFormType = Literal["auto", "ipv4", "ipv6", "domain", "hash", "phone", "email"]
 
 
@@ -367,7 +373,10 @@ async def index(request: Request):
             "lab_scan_enabled": settings.effective_lab_scan_enabled,
             "intel_search_enabled": _intel_search_enabled(request),
             "public_mode": settings.public_mode,
-            "allow_dynamic_sandbox": settings.allow_dynamic_sandbox,
+            "allow_dynamic_sandbox": _allow_dynamic_sandbox(request),
+            "admin_dynamic_opt_in": settings.public_mode
+            and settings.admin_allow_dynamic
+            and getattr(request.state, "is_admin", False),
             "show_history": _show_lookup_history(request),
         },
     )
@@ -799,7 +808,7 @@ async def analyze_file(
     if not _verify_csrf(request, csrf_token):
         return _html_error(request, "Invalid or expired session. Refresh the page and try again.", 403)
 
-    want_dynamic = _truthy_form(run_dynamic) and settings.allow_dynamic_sandbox
+    want_dynamic = _truthy_form(run_dynamic) and _allow_dynamic_sandbox(request)
     if want_dynamic and settings.sandbox_backend == "off":
         return _html_error(
             request,

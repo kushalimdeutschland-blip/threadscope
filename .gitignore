@@ -6,6 +6,8 @@ venv/
 *.egg-info/
 dist/
 .DS_Store
-data/
+data/*
+!data/sample_repos.yaml.example
+temp_repo_clones/
 .local/
 .cursor/

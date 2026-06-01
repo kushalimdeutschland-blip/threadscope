@@ -28,6 +28,7 @@ Privacy-first homelab SOC gatekeeper: **FastAPI + HTMX + SQLite + Ollama + YARA*
 | HTTP routes | `main.py` |
 | DB operations | `database.py` |
 | Feed ingest CLI | `ingest_feeds.py` |
+| Sample hash ingest (lab) | `ingest_samples.py`, `services/sample_repos.py` |
 | Intel collection CLI | `ingest_intel.py` |
 | Intel collectors | `services/intel/` |
 | Intel AI (Ollama) | `services/intel/ai.py`, `services/intel/context.py` |
@@ -50,3 +51,9 @@ python ingest_feeds.py
 python ingest_yara_rules.py   # optional
 ./scripts/dev.sh
 ```
+
+## VPS (public tier)
+
+- On-server bootstrap: `scripts/vps-bootstrap.sh` — see [docs/ops/vps-manual-setup.md](docs/ops/vps-manual-setup.md)
+- Lab hash DB → VPS: `scripts/sync-hash-db-to-production.sh` (stop `threatscope` first)
+- Do **not** run `ingest_samples.py` on the public VPS

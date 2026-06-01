@@ -69,6 +69,9 @@ class Settings:
     # Homelab admin views (e.g. GET /api/feed-accuracy). Set THREATSCOPE_ADMIN=1 to enable.
     threatscope_admin: bool = _env_bool("THREATSCOPE_ADMIN", False)
 
+    # Public VPS: allow signed-in admin to opt into dynamic sandbox when THREATSCOPE_PUBLIC=1
+    admin_allow_dynamic: bool = _env_bool("ADMIN_ALLOW_DYNAMIC", False)
+
     # Request limits
     max_body_bytes: int = int(os.getenv("MAX_BODY_BYTES", "4096"))
     max_upload_bytes: int = int(os.getenv("MAX_UPLOAD_BYTES", str(32 * 1024 * 1024)))
@@ -193,9 +196,18 @@ class Settings:
 
     @property
     def allow_dynamic_sandbox(self) -> bool:
+        """Homelab default: dynamic when not public and backend enabled."""
         if self.threatscope_public:
             return False
         return self.sandbox_backend.strip().lower() != "off"
+
+    def allow_dynamic_for_request(self, is_admin: bool = False) -> bool:
+        """Request-aware dynamic flag (public + admin override)."""
+        if self.sandbox_backend.strip().lower() == "off":
+            return False
+        if self.threatscope_public:
+            return bool(is_admin and self.admin_allow_dynamic)
+        return True
 
     @property
     def record_lookup_history(self) -> bool:

@@ -253,6 +253,29 @@ pip install -U -r requirements.txt
 
 ---
 
+## Automated deploy from GitHub
+
+From your workstation (after pushing to `main`):
+
+```bash
+export DEPLOY_SSH_PASSWORD='your-root-password'   # or use SSH keys (omit this)
+export ADMIN_PASSWORD_HASH='...'                  # optional; else read from LOCAL_ENV/.env
+./scripts/deploy-vps-from-github.sh
+```
+
+Equivalent: `python scripts/deploy_vps_github.py` with `VPS_HOST` (default `167.233.16.244`), `VPS_USER=root`, `THREATSCOPE_REPO_URL=https://github.com/kushalimdeutschland-blip/threadscope.git`.
+
+**If SSH fails** (no key, no password): on the VPS as root, use the manual bootstrap guide [vps-manual-setup.md](vps-manual-setup.md) or:
+
+```bash
+git clone --branch main https://github.com/kushalimdeutschland-blip/threadscope.git ~/threadscope
+cd ~/threadscope && bash scripts/vps-bootstrap.sh
+```
+
+Lab → VPS hash DB sync: [dev/architecture-two-tier.md](../dev/architecture-two-tier.md) and `scripts/sync-hash-db-to-production.sh`.
+
+---
+
 ## Initial deployment sequence
 
 ```bash

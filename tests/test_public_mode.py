@@ -44,3 +44,23 @@ def test_homelab_keeps_defaults_without_public(monkeypatch):
     assert cfg.effective_rate_limit == "30/minute"
     assert cfg.record_lookup_history is True
     assert cfg.allow_dynamic_sandbox is True
+
+
+def test_public_admin_dynamic_override(monkeypatch):
+    monkeypatch.setenv("THREATSCOPE_PUBLIC", "1")
+    monkeypatch.setenv("ADMIN_ALLOW_DYNAMIC", "1")
+    monkeypatch.setenv("SANDBOX_BACKEND", "mock")
+    reload_config_module()
+    cfg = get_settings()
+    assert cfg.allow_dynamic_sandbox is False
+    assert cfg.allow_dynamic_for_request(is_admin=False) is False
+    assert cfg.allow_dynamic_for_request(is_admin=True) is True
+
+
+def test_public_admin_dynamic_stays_off_without_flag(monkeypatch):
+    monkeypatch.setenv("THREATSCOPE_PUBLIC", "1")
+    monkeypatch.delenv("ADMIN_ALLOW_DYNAMIC", raising=False)
+    monkeypatch.setenv("SANDBOX_BACKEND", "mock")
+    reload_config_module()
+    cfg = get_settings()
+    assert cfg.allow_dynamic_for_request(is_admin=True) is False
